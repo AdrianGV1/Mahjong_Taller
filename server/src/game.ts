@@ -13,30 +13,86 @@ function fisherYatesShuffle<T>(array: T[]): T[] {
   return shuffled;
 }
 
+interface TilePosition {
+  x: number;
+  y: number;
+  z: number;
+}
+
+const SYMBOLS = [
+  '🀇', '🀈', '🀉', '🀊', '🀋', '🀌',
+  '🀍', '🀎', '🀏', '🀙', '🀚', '🀛',
+  '🀜', '🀝', '🀞', '🀐', '🀑', '🀒',
+  '🀓', '🀔', '🀕', '🀀', '🀁', '🀂',
+  '🀃', '🀄', '🀅', '🀆', '🀢',
+];
+
+const LAYOUT: TilePosition[] = [
+  // Base layer
+  { x: 4, y: 0, z: 0 }, { x: 6, y: 0, z: 0 }, { x: 8, y: 0, z: 0 }, { x: 10, y: 0, z: 0 }, { x: 12, y: 0, z: 0 }, { x: 14, y: 0, z: 0 },
+  { x: 2, y: 1, z: 0 }, { x: 4, y: 1, z: 0 }, { x: 6, y: 1, z: 0 }, { x: 8, y: 1, z: 0 }, { x: 10, y: 1, z: 0 }, { x: 12, y: 1, z: 0 }, { x: 14, y: 1, z: 0 }, { x: 16, y: 1, z: 0 },
+  { x: 2, y: 2, z: 0 }, { x: 4, y: 2, z: 0 }, { x: 6, y: 2, z: 0 }, { x: 8, y: 2, z: 0 }, { x: 10, y: 2, z: 0 }, { x: 12, y: 2, z: 0 }, { x: 14, y: 2, z: 0 }, { x: 16, y: 2, z: 0 },
+  { x: 2, y: 3, z: 0 }, { x: 4, y: 3, z: 0 }, { x: 6, y: 3, z: 0 }, { x: 8, y: 3, z: 0 }, { x: 10, y: 3, z: 0 }, { x: 12, y: 3, z: 0 }, { x: 14, y: 3, z: 0 }, { x: 16, y: 3, z: 0 },
+  { x: 4, y: 4, z: 0 }, { x: 6, y: 4, z: 0 }, { x: 8, y: 4, z: 0 }, { x: 10, y: 4, z: 0 }, { x: 12, y: 4, z: 0 }, { x: 14, y: 4, z: 0 },
+  // Middle layer
+  { x: 6, y: 1, z: 1 }, { x: 8, y: 1, z: 1 }, { x: 10, y: 1, z: 1 }, { x: 12, y: 1, z: 1 },
+  { x: 4, y: 2, z: 1 }, { x: 6, y: 2, z: 1 }, { x: 8, y: 2, z: 1 }, { x: 10, y: 2, z: 1 }, { x: 12, y: 2, z: 1 }, { x: 14, y: 2, z: 1 },
+  { x: 6, y: 3, z: 1 }, { x: 8, y: 3, z: 1 }, { x: 10, y: 3, z: 1 }, { x: 12, y: 3, z: 1 },
+  // Upper layer
+  { x: 8, y: 1, z: 2 }, { x: 10, y: 1, z: 2 },
+  { x: 6, y: 2, z: 2 }, { x: 8, y: 2, z: 2 }, { x: 10, y: 2, z: 2 }, { x: 12, y: 2, z: 2 },
+  // Top layer
+  { x: 8, y: 2, z: 3 }, { x: 10, y: 2, z: 3 },
+];
+
+function overlapsOnTop(tile: Tile, candidate: Tile): boolean {
+  return Math.abs(tile.x - candidate.x) < 2 && Math.abs(tile.y - candidate.y) < 1;
+}
+
+function recalculateEnabled(tiles: Tile[]): Tile[] {
+  return tiles.map((tile) => {
+    if (tile.paired) {
+      return { ...tile, enabled: false, lockedBy: null };
+    }
+
+    const hasTileAbove = tiles.some((candidate) =>
+      !candidate.paired && candidate.z > tile.z && overlapsOnTop(tile, candidate)
+    );
+
+    const hasLeftNeighbor = tiles.some((candidate) =>
+      !candidate.paired && candidate.z === tile.z && candidate.y === tile.y && candidate.x === tile.x - 2
+    );
+    const hasRightNeighbor = tiles.some((candidate) =>
+      !candidate.paired && candidate.z === tile.z && candidate.y === tile.y && candidate.x === tile.x + 2
+    );
+
+    const enabled = !hasTileAbove && (!hasLeftNeighbor || !hasRightNeighbor);
+    return { ...tile, enabled };
+  });
+}
+
 /**
  * Genera las fichas del juego de Mahjong
  * Crea pares de fichas con tipos (1-9)
  */
 function generateTiles(): Tile[] {
-  const tiles: Tile[] = [];
-  const tileTypes = ['🀄', '🀅', '🀆', '🀇', '🀈', '🀉', '🀊', '🀋', '🀌'];
-  let id = 0;
+  const pairCount = LAYOUT.length / 2;
+  const pairTypes = Array.from({ length: pairCount }, (_, index) => SYMBOLS[index % SYMBOLS.length]);
+  const shuffledTypes = fisherYatesShuffle(pairTypes.flatMap((type) => [type, type]));
 
-  // Crear 2 fichas de cada tipo
-  for (const type of tileTypes) {
-    for (let i = 0; i < 2; i++) {
-      tiles.push({
-        id: `tile-${id++}`,
-        type,
-        paired: false,
-        flipped: false,
-        lockedBy: null,
-      });
-    }
-  }
+  const tiles: Tile[] = LAYOUT.map((position, index) => ({
+    id: `tile-${index}`,
+    type: shuffledTypes[index],
+    paired: false,
+    flipped: true,
+    lockedBy: null,
+    enabled: false,
+    x: position.x,
+    y: position.y,
+    z: position.z,
+  }));
 
-  // Barajar con Fisher-Yates
-  return fisherYatesShuffle(tiles);
+  return recalculateEnabled(tiles);
 }
 
 /**
@@ -73,6 +129,7 @@ export function addPlayer(game: Game, playerId: string, playerName: string): Gam
   const updatedGame = {
     ...game,
     players: [...game.players, newPlayer],
+    tiles: recalculateEnabled(game.tiles),
   };
 
   // Si hay al menos 1 jugador, empezar el juego
@@ -91,6 +148,7 @@ export function removePlayer(game: Game, playerId: string): Game {
   const updatedGame = {
     ...game,
     players: game.players.filter((p) => p.id !== playerId),
+    tiles: recalculateEnabled(game.tiles),
   };
 
   // Si no quedan jugadores, finalizar
@@ -110,7 +168,7 @@ export function selectTile(game: Game, tileId: string, playerId: string): Game {
   const tile = game.tiles.find((t) => t.id === tileId);
 
   // Si la ficha no existe o ya está emparejada
-  if (!tile || tile.paired) {
+  if (!tile || tile.paired || !tile.enabled) {
     return game;
   }
 
@@ -119,10 +177,14 @@ export function selectTile(game: Game, tileId: string, playerId: string): Game {
     return game;
   }
 
+  if (game.selectedTiles.includes(tileId) || game.selectedTiles.length >= 2) {
+    return game;
+  }
+
   const updatedGame = {
     ...game,
     tiles: game.tiles.map((t) =>
-      t.id === tileId ? { ...t, flipped: true, lockedBy: playerId } : t
+      t.id === tileId ? { ...t, lockedBy: playerId } : t
     ),
     selectedTiles: [...game.selectedTiles, tileId],
   };
@@ -132,7 +194,10 @@ export function selectTile(game: Game, tileId: string, playerId: string): Game {
     return checkMatch(updatedGame, playerId);
   }
 
-  return updatedGame;
+  return {
+    ...updatedGame,
+    tiles: recalculateEnabled(updatedGame.tiles),
+  };
 }
 
 /**
@@ -179,12 +244,17 @@ export function checkMatch(game: Game, playerId: string): Game {
       ...game,
       tiles: game.tiles.map((t) =>
         (t.id === tile1Id || t.id === tile2Id)
-          ? { ...t, flipped: false, lockedBy: null }
+          ? { ...t, lockedBy: null }
           : t
       ),
       selectedTiles: [],
     };
   }
+
+  updatedGame = {
+    ...updatedGame,
+    tiles: recalculateEnabled(updatedGame.tiles),
+  };
 
   // Verificar si el juego terminó (todas las fichas emparejadas)
   const allPaired = updatedGame.tiles.every((t) => t.paired);

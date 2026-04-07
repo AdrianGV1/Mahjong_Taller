@@ -4,6 +4,10 @@ export interface Tile {
   paired: boolean;
   flipped: boolean;
   lockedBy: string | null;
+  enabled: boolean;
+  x: number;
+  y: number;
+  z: number;
 }
 
 export interface Player {
