@@ -251,6 +251,15 @@ export function selectTile(game: Game, tileId: string, playerId: string): Game {
     return game;
   }
 
+  // ✅ Validación: Si ya hay fichas seleccionadas, verificar que pertenecen al mismo jugador
+  if (game.selectedTiles.length > 0) {
+    const firstSelectedTile = game.tiles.find((t) => t.id === game.selectedTiles[0]);
+    if (firstSelectedTile && firstSelectedTile.lockedBy !== playerId) {
+      // Las fichas seleccionadas pertenecen a otro jugador, rechaza
+      return game;
+    }
+  }
+
   const updatedGame = {
     ...game,
     tiles: game.tiles.map((t) =>
@@ -285,6 +294,21 @@ export function checkMatch(game: Game, playerId: string): Game {
 
   if (!tile1 || !tile2) {
     return game;
+  }
+
+  // ✅ VALIDACIÓN: Ambas fichas deben estar bloqueadas por ESTE jugador
+  // Si alguna está bloqueada por otro jugador, rechaza el emparejamiento
+  if (tile1.lockedBy !== playerId || tile2.lockedBy !== playerId) {
+    // Limpiar selectedTiles y desbloquear fichas
+    return {
+      ...game,
+      selectedTiles: [],
+      tiles: game.tiles.map((t) =>
+        (t.id === tile1Id || t.id === tile2Id)
+          ? { ...t, lockedBy: null }
+          : t
+      ),
+    };
   }
 
   // Verificar si las fichas son del mismo tipo
