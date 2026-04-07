@@ -145,6 +145,7 @@ h1, h2, h3, .tile-symbol {
 }
 
 .solitaire-tile-face {
+  position: relative;
   width: 100%;
   height: 100%;
   border-radius: 10px;
@@ -158,7 +159,26 @@ h1, h2, h3, .tile-symbol {
 }
 
 .tile-symbol {
+  font-size: 2.1rem;
+  line-height: 1;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.tile-corner {
+  position: absolute;
+  font-size: 0.85rem;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.tile-corner.top-left {
+  top: 7px;
+  left: 8px;
+}
+
+.tile-corner.bottom-right {
+  right: 8px;
+  bottom: 7px;
 }
 
 .solitaire-tile.enabled:hover {

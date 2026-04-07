@@ -2,20 +2,9 @@ import React from 'react';
 import { Tile as TileType } from '../types';
 
 function getSymbolColor(symbol: string): string {
-  const redSet = new Set(['🀄', '🀅', '🀆', '🀀', '🀁', '🀂', '🀃']);
-  const greenSet = new Set(['🀐', '🀑', '🀒', '🀓', '🀔', '🀕']);
-  const blueSet = new Set(['🀙', '🀚', '🀛', '🀜', '🀝', '🀞']);
-
-  if (redSet.has(symbol)) {
-    return '#b8281f';
-  }
-  if (greenSet.has(symbol)) {
-    return '#1d6f43';
-  }
-  if (blueSet.has(symbol)) {
-    return '#14528a';
-  }
-  return '#202226';
+  const palette = ['#2c3e50', '#5d3a00', '#3d5a2b', '#5b2a5b', '#8b1e1e', '#1f4f75'];
+  const code = symbol.codePointAt(0) ?? 0;
+  return palette[code % palette.length];
 }
 
 interface TileProps {
@@ -43,7 +32,9 @@ export const Tile: React.FC<TileProps> = React.memo(({ tile, currentPlayerId, on
       style={style}
     >
       <div className="solitaire-tile-face">
+        <span className="tile-corner top-left" style={{ color: symbolColor }}>{tile.symbol}</span>
         <span className="tile-symbol" style={{ color: symbolColor }}>{tile.symbol}</span>
+        <span className="tile-corner bottom-right" style={{ color: symbolColor }}>{tile.symbol}</span>
       </div>
     </div>
   );
