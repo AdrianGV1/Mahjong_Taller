@@ -2,6 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { GameState, Player, ScoreSnapshot, Tile } from '../types';
 
+interface UseSocketReturn {
+  socket: Socket | null;
+  gameState: GameState | null;
+  isConnected: boolean;
+  currentPlayerId: string | null;
+  hasJoined: boolean;
+  joinGame: (name: string) => void;
+  selectTile: (tileId: string) => void;
+}
+
 interface ServerTile {
   id: string;
   type: string;
@@ -108,11 +118,12 @@ function mapServerGame(serverGame: ServerGame, previousState: GameState | null):
   };
 }
 
-export const useSocket = () => {
+export const useSocket = (): UseSocketReturn => {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [pendingPlayerName, setPendingPlayerName] = useState<string | null>(null);
+  const [playerName, setPlayerName] = useState<string | null>(null);
+  const [hasJoined, setHasJoined] = useState(false);
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
@@ -121,6 +132,11 @@ export const useSocket = () => {
 
     socket.on('connect', () => {
       setIsConnected(true);
+
+      if (playerName) {
+        setCurrentPlayerId(socket.id ?? null);
+        socket.emit('player:join', { name: playerName });
+      }
     });
 
     socket.on('disconnect', () => {
@@ -128,7 +144,7 @@ export const useSocket = () => {
     });
 
     socket.on('game:state', (serverGame: ServerGame) => {
-      setGameState((previous) => mapServerGame(serverGame, previous));
+      setGameState((previous: GameState | null) => mapServerGame(serverGame, previous));
     });
 
     return () => {
@@ -136,24 +152,24 @@ export const useSocket = () => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, []);
+  }, [playerName]);
 
-  useEffect(() => {
-    if (!pendingPlayerName) {
+  const joinGame = (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) {
       return;
     }
+
+    setPlayerName(trimmed);
+    setHasJoined(true);
 
     const socket = socketRef.current;
     if (!socket?.connected) {
       return;
     }
 
-    socket.emit('player:join', { name: pendingPlayerName });
-  }, [pendingPlayerName, isConnected]);
-
-  const joinGame = (name: string) => {
-    setPendingPlayerName(name);
-    setCurrentPlayerId(socketRef.current?.id ?? null);
+    setCurrentPlayerId(socket.id ?? null);
+    socket.emit('player:join', { name: trimmed });
   };
 
   const selectTile = (tileId: string) => {
@@ -165,10 +181,12 @@ export const useSocket = () => {
   };
 
   return {
+    socket: socketRef.current,
     gameState,
     isConnected,
     joinGame,
     selectTile,
     currentPlayerId,
+    hasJoined,
   };
 };

@@ -7,13 +7,13 @@ import { LiveChart } from './components/LiveChart';
 import './styles.css';
 
 const App: React.FC = () => {
-  const { gameState, isConnected, joinGame, selectTile, currentPlayerId } = useSocket();
+  const { gameState, isConnected, joinGame, selectTile, currentPlayerId, hasJoined } = useSocket();
 
-  if (!currentPlayerId) {
+  if (!hasJoined) {
     return <Lobby joinGame={joinGame} />;
   }
 
-  if (!gameState) {
+  if (!gameState || !currentPlayerId) {
     return <div style={{ color: 'white', textAlign: 'center', marginTop: '20%' }}>Loading Sanctuary...</div>;
   }
 
