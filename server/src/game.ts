@@ -27,22 +27,36 @@ const SYMBOLS = [
   '🀃', '🀄', '🀅', '🀆', '🀢',
 ];
 
+function createRow(startX: number, count: number, y: number, z: number): TilePosition[] {
+  return Array.from({ length: count }, (_, index) => ({
+    x: startX + index * 2,
+    y,
+    z,
+  }));
+}
+
 const LAYOUT: TilePosition[] = [
   // Base layer
-  { x: 4, y: 0, z: 0 }, { x: 6, y: 0, z: 0 }, { x: 8, y: 0, z: 0 }, { x: 10, y: 0, z: 0 }, { x: 12, y: 0, z: 0 }, { x: 14, y: 0, z: 0 },
-  { x: 2, y: 1, z: 0 }, { x: 4, y: 1, z: 0 }, { x: 6, y: 1, z: 0 }, { x: 8, y: 1, z: 0 }, { x: 10, y: 1, z: 0 }, { x: 12, y: 1, z: 0 }, { x: 14, y: 1, z: 0 }, { x: 16, y: 1, z: 0 },
-  { x: 2, y: 2, z: 0 }, { x: 4, y: 2, z: 0 }, { x: 6, y: 2, z: 0 }, { x: 8, y: 2, z: 0 }, { x: 10, y: 2, z: 0 }, { x: 12, y: 2, z: 0 }, { x: 14, y: 2, z: 0 }, { x: 16, y: 2, z: 0 },
-  { x: 2, y: 3, z: 0 }, { x: 4, y: 3, z: 0 }, { x: 6, y: 3, z: 0 }, { x: 8, y: 3, z: 0 }, { x: 10, y: 3, z: 0 }, { x: 12, y: 3, z: 0 }, { x: 14, y: 3, z: 0 }, { x: 16, y: 3, z: 0 },
-  { x: 4, y: 4, z: 0 }, { x: 6, y: 4, z: 0 }, { x: 8, y: 4, z: 0 }, { x: 10, y: 4, z: 0 }, { x: 12, y: 4, z: 0 }, { x: 14, y: 4, z: 0 },
+  ...createRow(4, 6, 0, 0),
+  ...createRow(2, 8, 1, 0),
+  ...createRow(0, 10, 2, 0),
+  ...createRow(0, 10, 3, 0),
+  ...createRow(2, 8, 4, 0),
+  ...createRow(4, 6, 5, 0),
   // Middle layer
-  { x: 6, y: 1, z: 1 }, { x: 8, y: 1, z: 1 }, { x: 10, y: 1, z: 1 }, { x: 12, y: 1, z: 1 },
-  { x: 4, y: 2, z: 1 }, { x: 6, y: 2, z: 1 }, { x: 8, y: 2, z: 1 }, { x: 10, y: 2, z: 1 }, { x: 12, y: 2, z: 1 }, { x: 14, y: 2, z: 1 },
-  { x: 6, y: 3, z: 1 }, { x: 8, y: 3, z: 1 }, { x: 10, y: 3, z: 1 }, { x: 12, y: 3, z: 1 },
+  ...createRow(6, 4, 1, 1),
+  ...createRow(4, 6, 2, 1),
+  ...createRow(2, 8, 3, 1),
+  ...createRow(4, 6, 4, 1),
+  ...createRow(6, 4, 5, 1),
   // Upper layer
-  { x: 8, y: 1, z: 2 }, { x: 10, y: 1, z: 2 },
-  { x: 6, y: 2, z: 2 }, { x: 8, y: 2, z: 2 }, { x: 10, y: 2, z: 2 }, { x: 12, y: 2, z: 2 },
+  ...createRow(8, 2, 2, 2),
+  ...createRow(6, 4, 3, 2),
+  ...createRow(6, 4, 4, 2),
+  ...createRow(8, 2, 5, 2),
   // Top layer
-  { x: 8, y: 2, z: 3 }, { x: 10, y: 2, z: 3 },
+  ...createRow(8, 2, 3, 3),
+  ...createRow(8, 2, 4, 3),
 ];
 
 function overlapsOnTop(tile: Tile, candidate: Tile): boolean {
@@ -50,7 +64,7 @@ function overlapsOnTop(tile: Tile, candidate: Tile): boolean {
 }
 
 function recalculateEnabled(tiles: Tile[]): Tile[] {
-  return tiles.map((tile) => {
+  const recalculated = tiles.map((tile) => {
     if (tile.paired) {
       return { ...tile, enabled: false, lockedBy: null };
     }
@@ -69,6 +83,62 @@ function recalculateEnabled(tiles: Tile[]): Tile[] {
     const enabled = !hasTileAbove && (!hasLeftNeighbor || !hasRightNeighbor);
     return { ...tile, enabled };
   });
+
+  const enabledCount = recalculated.filter((tile) => tile.enabled).length;
+  if (enabledCount >= 8) {
+    return recalculated;
+  }
+
+  const promotableTiles = recalculated
+    .filter((tile) => !tile.paired && !tile.enabled)
+    .filter((tile) => !recalculated.some((candidate) =>
+      !candidate.paired && candidate.z > tile.z && overlapsOnTop(tile, candidate)
+    ))
+    .map((tile) => ({
+      tile,
+      blockerCount: [
+        recalculated.some((candidate) =>
+          !candidate.paired && candidate.z === tile.z && candidate.y === tile.y && candidate.x === tile.x - 2
+        ),
+        recalculated.some((candidate) =>
+          !candidate.paired && candidate.z === tile.z && candidate.y === tile.y && candidate.x === tile.x + 2
+        ),
+      ].filter(Boolean).length,
+    }))
+    .sort((a, b) => a.blockerCount - b.blockerCount || a.tile.z - b.tile.z || a.tile.y - b.tile.y || a.tile.x - b.tile.x)
+    .slice(0, Math.max(0, 8 - enabledCount))
+    .map(({ tile }) => tile.id);
+
+  const promotedIds = new Set(promotableTiles);
+  return recalculated.map((tile) =>
+    promotedIds.has(tile.id) ? { ...tile, enabled: true } : tile
+  );
+}
+
+function seedStartingPairs(tiles: Tile[]): Tile[] {
+  const enabledTiles = tiles
+    .filter((tile) => tile.enabled)
+    .sort((a, b) => a.z - b.z || a.y - b.y || a.x - b.x);
+
+  const playableCount = Math.min(16, enabledTiles.length - (enabledTiles.length % 2));
+  if (playableCount < 4) {
+    return tiles;
+  }
+
+  const pairTypes = fisherYatesShuffle([...SYMBOLS]).slice(0, playableCount / 2);
+  const enabledIdsToType = new Map<string, string>();
+
+  for (let index = 0; index < playableCount; index += 2) {
+    const type = pairTypes[index / 2];
+    enabledIdsToType.set(enabledTiles[index].id, type);
+    enabledIdsToType.set(enabledTiles[index + 1].id, type);
+  }
+
+  return tiles.map((tile) =>
+    enabledIdsToType.has(tile.id)
+      ? { ...tile, type: enabledIdsToType.get(tile.id)! }
+      : tile
+  );
 }
 
 /**
@@ -92,7 +162,7 @@ function generateTiles(): Tile[] {
     z: position.z,
   }));
 
-  return recalculateEnabled(tiles);
+  return seedStartingPairs(recalculateEnabled(tiles));
 }
 
 /**
