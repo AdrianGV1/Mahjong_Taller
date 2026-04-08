@@ -13,6 +13,7 @@ export interface Tile {
 export interface Player {
   id: string;
   name: string;
+  avatar: string;
   score: number;
 }
 

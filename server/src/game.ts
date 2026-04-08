@@ -184,7 +184,7 @@ export function createGame(gameId: string): Game {
 /**
  * Agrega un jugador a la partida
  */
-export function addPlayer(game: Game, playerId: string, playerName: string): Game {
+export function addPlayer(game: Game, playerId: string, playerName: string, playerAvatar: string): Game {
   // Verificar que el jugador no exista ya
   if (game.players.some((p) => p.id === playerId)) {
     return game;
@@ -193,6 +193,7 @@ export function addPlayer(game: Game, playerId: string, playerName: string): Gam
   const newPlayer: Player = {
     id: playerId,
     name: playerName,
+    avatar: playerAvatar || 'gorila-0',
     score: 0,
   };
 

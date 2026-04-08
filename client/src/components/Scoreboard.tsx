@@ -1,5 +1,6 @@
 import React from 'react';
 import { Player } from '../types';
+import { getAvatarOption } from '../avatarOptions';
 
 interface ScoreboardProps {
   players: Player[];
@@ -10,7 +11,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({ players, currentPlayerId
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
 
   return (
-    <div className="glass-panel" style={{ padding: '20px', minWidth: '280px' }}>
+    <div className="glass-panel scoreboard-card" style={{ padding: '20px', minWidth: '280px' }}>
       <h3 style={{ color: 'var(--gold)', marginBottom: '20px', textAlign: 'center' }}>Rankings</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {sortedPlayers.map((player) => (
@@ -27,18 +28,20 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({ players, currentPlayerId
             }}
           >
             <div style={{
-              width: '40px',
-              height: '40px',
+              width: '44px',
+              height: '44px',
               borderRadius: '50%',
-              background: 'var(--gold)',
-              color: 'var(--bg-dark)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              marginRight: '12px'
+              overflow: 'hidden',
+              flexShrink: 0,
+              marginRight: '12px',
+              border: '1px solid rgba(255,255,255,0.12)',
+              boxShadow: '0 10px 18px rgba(0,0,0,0.28)'
             }}>
-              {player.name.substring(0, 2).toUpperCase()}
+              <img
+                src={getAvatarOption(player.avatar).src}
+                alt={player.name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: '0.9rem', fontWeight: '600' }}>{player.name}</div>

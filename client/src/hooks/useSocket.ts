@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { GameState, Player, ScoreSnapshot, Tile } from '../types';
+import { DEFAULT_AVATAR_ID } from '../avatarOptions';
 
 interface UseSocketReturn {
   socket: Socket | null;
@@ -8,7 +9,7 @@ interface UseSocketReturn {
   isConnected: boolean;
   currentPlayerId: string | null;
   hasJoined: boolean;
-  joinGame: (name: string) => void;
+  joinGame: (name: string, avatar: string) => void;
   selectTile: (tileId: string) => void;
 }
 
@@ -27,6 +28,7 @@ interface ServerTile {
 interface ServerPlayer {
   id: string;
   name: string;
+  avatar?: string;
   score: number;
 }
 
@@ -61,6 +63,7 @@ function toPlayer(player: ServerPlayer): Player {
   return {
     id: player.id,
     name: player.name,
+    avatar: player.avatar ?? DEFAULT_AVATAR_ID,
     score: player.score,
     isConnected: true,
   };
@@ -123,6 +126,7 @@ export const useSocket = (): UseSocketReturn => {
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [playerName, setPlayerName] = useState<string | null>(null);
+  const [playerAvatar, setPlayerAvatar] = useState<string>(DEFAULT_AVATAR_ID);
   const [hasJoined, setHasJoined] = useState(false);
   const socketRef = useRef<Socket | null>(null);
 
@@ -135,7 +139,7 @@ export const useSocket = (): UseSocketReturn => {
 
       if (playerName) {
         setCurrentPlayerId(socket.id ?? null);
-        socket.emit('player:join', { name: playerName });
+        socket.emit('player:join', { name: playerName, avatar: playerAvatar });
       }
     });
 
@@ -152,15 +156,16 @@ export const useSocket = (): UseSocketReturn => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [playerName]);
+  }, [playerAvatar, playerName]);
 
-  const joinGame = (name: string) => {
+  const joinGame = (name: string, avatar: string = DEFAULT_AVATAR_ID) => {
     const trimmed = name.trim();
     if (!trimmed) {
       return;
     }
 
     setPlayerName(trimmed);
+    setPlayerAvatar(avatar);
     setHasJoined(true);
 
     const socket = socketRef.current;
@@ -169,7 +174,7 @@ export const useSocket = (): UseSocketReturn => {
     }
 
     setCurrentPlayerId(socket.id ?? null);
-    socket.emit('player:join', { name: trimmed });
+    socket.emit('player:join', { name: trimmed, avatar });
   };
 
   const selectTile = (tileId: string) => {

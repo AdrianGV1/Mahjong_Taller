@@ -8,8 +8,8 @@ export function setupSocket(io: SocketIOServer): void {
 	io.on('connection', (socket: Socket) => {
 		socket.emit('game:state', game);
 
-		socket.on('player:join', ({ name }: { name: string }) => {
-			game = addPlayer(game, socket.id, name);
+		socket.on('player:join', ({ name, avatar }: { name: string; avatar: string }) => {
+			game = addPlayer(game, socket.id, name, avatar);
 			io.emit('game:state', game);
 		});
 

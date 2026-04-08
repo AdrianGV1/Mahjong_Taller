@@ -18,15 +18,9 @@ const App: React.FC = () => {
   }
 
   return (
-    <div style={{ minHeight: '100vh', padding: '24px' }}>
+    <div className="app-shell">
       {/* Top Bar */}
-      <header style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: '32px',
-        padding: '0 20px'
-      }}>
+      <header className="app-header">
         <div>
           <h1 style={{ color: 'var(--gold)', fontSize: '1.5rem', letterSpacing: '1px' }}>MAHJONG COOP</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -48,14 +42,8 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main style={{ 
-        display: 'grid', 
-        gridTemplateColumns: '1fr 320px', 
-        gap: '24px', 
-        maxWidth: '1400px', 
-        margin: '0 auto' 
-      }}>
-        <section>
+      <main className="app-main">
+        <section className="app-board-column">
           <div className="glass-panel" style={{ background: 'rgba(0,0,0,0.2)', padding: '10px' }}>
             <Board 
               tiles={gameState.tiles} 
@@ -66,7 +54,7 @@ const App: React.FC = () => {
           <LiveChart scoreHistory={gameState.scoreHistory} players={gameState.players} />
         </section>
 
-        <aside>
+        <aside className="app-sidebar">
           <Scoreboard players={gameState.players} currentPlayerId={currentPlayerId} />
         </aside>
       </main>

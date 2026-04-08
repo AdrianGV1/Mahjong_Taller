@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { ScoreSnapshot, Player } from "../types";
+import { getAvatarOption } from "../avatarOptions";
 
 interface LiveChartProps {
   scoreHistory: ScoreSnapshot[];
@@ -8,44 +9,54 @@ interface LiveChartProps {
 
 const COLORS = ["#c9a84c", "#4caf7d", "#4a9eff", "#e07b39", "#a855f7"];
 const MAX_HEIGHT = 180;
-const FIGURE_WIDTH = 44;
+const MAX_AVATAR_SIZE = 110;
+const MIN_AVATAR_SIZE = 52;
 
-function StickFigure({
-  color,
-  heightPx,
+function GorillaAvatar({
+  avatarSrc,
+  size,
   connected,
+  accent,
 }: {
-  color: string;
-  heightPx: number;
+  avatarSrc: string;
+  size: number;
   connected: boolean;
+  accent: string;
 }) {
-  const scale = Math.max(0.25, heightPx / MAX_HEIGHT);
-  const headR = Math.round(7 * scale);
-  const bodyH = Math.round(28 * scale);
-  const armW = Math.round(12 * scale);
-  const legH = Math.round(18 * scale);
-  const cx = FIGURE_WIDTH / 2;
-  const top = 4;
-  const headCY = top + headR;
-  const bodyTop = headCY + headR + 3;
-  const bodyBot = bodyTop + bodyH;
-  const totalH = headR * 2 + 4 + bodyH + legH + 4;
-  const sw = Math.max(1.5, 2.5 * scale);
-  const alpha = connected ? 1 : 0.35;
-
   return (
-    <svg
-      width={FIGURE_WIDTH}
-      height={totalH}
-      viewBox={`0 0 ${FIGURE_WIDTH} ${totalH}`}
-      style={{ overflow: "visible", opacity: alpha, transition: "height 0.6s ease" }}
+    <div
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        borderRadius: "50%",
+        padding: "4px",
+        background: `linear-gradient(145deg, ${accent} 0%, rgba(255,255,255,0.18) 100%)`,
+        boxShadow: connected ? `0 18px 30px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.08)` : "none",
+        opacity: connected ? 1 : 0.45,
+        transition: "width 0.5s ease, height 0.5s ease, opacity 0.5s ease, transform 0.5s ease",
+      }}
     >
-      <circle cx={cx} cy={headCY} r={headR} fill={color} />
-      <line x1={cx} y1={bodyTop} x2={cx} y2={bodyBot} stroke={color} strokeWidth={Math.max(2, 3 * scale)} strokeLinecap="round" />
-      <line x1={cx - armW} y1={bodyTop + bodyH * 0.3} x2={cx + armW} y2={bodyTop + bodyH * 0.3} stroke={color} strokeWidth={sw} strokeLinecap="round" />
-      <line x1={cx} y1={bodyBot} x2={cx - armW * 0.8} y2={bodyBot + legH} stroke={color} strokeWidth={sw} strokeLinecap="round" />
-      <line x1={cx} y1={bodyBot} x2={cx + armW * 0.8} y2={bodyBot + legH} stroke={color} strokeWidth={sw} strokeLinecap="round" />
-    </svg>
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          borderRadius: "50%",
+          overflow: "hidden",
+          background: "rgba(255,255,255,0.08)",
+        }}
+      >
+        <img
+          src={avatarSrc}
+          alt="Avatar"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -89,6 +100,8 @@ export const LiveChart: React.FC<LiveChartProps> = ({ scoreHistory, players }) =
           const color = COLORS[index % COLORS.length];
           const score = currentScores[player.name] ?? 0;
           const heightPx = Math.max(8, Math.round((score / maxScore) * MAX_HEIGHT));
+          const avatar = getAvatarOption(player.avatar);
+          const avatarSize = Math.max(MIN_AVATAR_SIZE, Math.round(MIN_AVATAR_SIZE + (heightPx / MAX_HEIGHT) * (MAX_AVATAR_SIZE - MIN_AVATAR_SIZE)));
 
           return (
             <div key={player.id} style={styles.figureCol}>
@@ -102,7 +115,12 @@ export const LiveChart: React.FC<LiveChartProps> = ({ scoreHistory, players }) =
                     transition: "all 0.6s cubic-bezier(.4,0,.2,1)",
                   }}
                 >
-                  <StickFigure color={color} heightPx={heightPx} connected={player.isConnected} />
+                  <GorillaAvatar
+                    avatarSrc={avatar.src}
+                    size={avatarSize}
+                    connected={player.isConnected}
+                    accent={color}
+                  />
                 </div>
               </div>
 

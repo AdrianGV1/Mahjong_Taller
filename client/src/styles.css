@@ -30,6 +30,15 @@ body {
   min-height: 100vh;
 }
 
+button,
+input {
+  font: inherit;
+}
+
+img {
+  max-width: 100%;
+}
+
 h1, h2, h3, .tile-symbol {
   font-family: 'Noto Serif JP', serif;
 }
@@ -41,6 +50,54 @@ h1, h2, h3, .tile-symbol {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.lobby-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 24px;
+  background: radial-gradient(circle at top, rgba(201, 168, 76, 0.12) 0%, transparent 35%), radial-gradient(circle at bottom, rgba(76, 175, 125, 0.08) 0%, transparent 32%), linear-gradient(to bottom, #141826 0%, #0f1117 100%);
+}
+
+.lobby-card {
+  width: min(100%, 560px);
+  padding: 56px;
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding: 0 20px;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.app-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.app-board-column {
+  min-width: 0;
+}
+
+.app-sidebar {
+  min-width: 0;
 }
 
 /* Animations */
@@ -125,13 +182,13 @@ h1, h2, h3, .tile-symbol {
 .mahjong-board-shell {
   width: 100%;
   overflow-x: auto;
-  padding: 16px 10px 24px;
+  padding: 0;
 }
 
 .mahjong-board {
   position: relative;
   margin: 0 auto;
-  min-width: 920px;
+  min-width: 0;
 }
 
 .solitaire-tile {
@@ -166,7 +223,7 @@ h1, h2, h3, .tile-symbol {
 
 .tile-corner {
   position: absolute;
-  font-size: 0.85rem;
+  font-size: 0.62rem;
   line-height: 1;
   opacity: 0.85;
 }
@@ -174,6 +231,16 @@ h1, h2, h3, .tile-symbol {
 .tile-corner.top-left {
   top: 7px;
   left: 8px;
+}
+
+.tile-corner.top-right {
+  top: 7px;
+  right: 8px;
+}
+
+.tile-corner.bottom-left {
+  left: 8px;
+  bottom: 7px;
 }
 
 .tile-corner.bottom-right {
@@ -215,4 +282,180 @@ h1, h2, h3, .tile-symbol {
 ::-webkit-scrollbar-thumb {
   background: var(--gold);
   border-radius: 10px;
+}
+
+@media (max-width: 1100px) {
+  .app-main {
+    grid-template-columns: 1fr;
+  }
+
+  .app-sidebar {
+    order: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-shell {
+    padding: 14px;
+  }
+
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0;
+    margin-bottom: 20px;
+  }
+
+  .lobby-card {
+    padding: 34px 22px;
+  }
+
+  .lobby-shell {
+    padding: 16px;
+  }
+
+  .app-main {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .scoreboard-card {
+    min-width: 0 !important;
+    width: 100%;
+    padding: 16px !important;
+  }
+
+  .scoreboard-card h3 {
+    margin-bottom: 14px !important;
+    font-size: 1rem;
+  }
+
+  .scoreboard-card > div {
+    gap: 10px !important;
+  }
+
+  .scoreboard-card > div > div {
+    padding: 10px !important;
+  }
+
+  .app-header h1 {
+    font-size: 1.25rem !important;
+  }
+
+  .app-header > div:last-child {
+    align-self: stretch;
+    text-align: center;
+  }
+
+  .mahjong-board-shell {
+    padding: 10px 4px 18px;
+  }
+
+  .solitaire-tile {
+    width: 60px;
+    height: 76px;
+    padding: 2px;
+  }
+
+  .solitaire-tile-face {
+    font-size: 1.55rem;
+  }
+
+  .tile-symbol {
+    font-size: 1.55rem;
+  }
+
+  .tile-corner {
+    font-size: 0.68rem;
+  }
+
+  .tile-corner.top-left {
+    top: 5px;
+    left: 6px;
+  }
+
+  .tile-corner.bottom-right {
+    right: 6px;
+    bottom: 5px;
+  }
+
+  .glass-panel {
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 520px) {
+  .lobby-shell {
+    padding: 8px;
+  }
+
+  .lobby-card {
+    width: min(100%, 420px);
+    padding: 18px 14px;
+  }
+
+  .lobby-card h1 {
+    font-size: 2.4rem !important;
+    margin-bottom: 2px !important;
+  }
+
+  .lobby-card h2 {
+    font-size: 1.2rem !important;
+    margin-bottom: 2px !important;
+  }
+
+  .lobby-card p {
+    font-size: 0.8rem;
+    margin-bottom: 12px !important;
+  }
+
+  .lobby-card form {
+    gap: 10px !important;
+  }
+
+  .lobby-card form > div > div {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .lobby-card form > div > div button {
+    padding: 6px 4px !important;
+    border-radius: 10px !important;
+  }
+
+  .lobby-card form > div > div button span {
+    font-size: 0.64rem !important;
+  }
+
+  .lobby-card input {
+    padding: 10px 12px !important;
+    font-size: 0.9rem !important;
+  }
+
+  .lobby-card button[type='submit'] {
+    padding: 11px !important;
+    font-size: 0.92rem !important;
+  }
+
+  .app-shell {
+    padding: 10px;
+  }
+
+  .app-main {
+    gap: 14px;
+  }
+
+  .solitaire-tile {
+    width: 54px;
+    height: 68px;
+  }
+
+  .solitaire-tile-face {
+    font-size: 1.35rem;
+  }
+
+  .tile-symbol {
+    font-size: 1.35rem;
+  }
 }
